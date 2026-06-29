@@ -4,6 +4,7 @@ set -euo pipefail
 
 NEW_VERSION=${1:-not provided}
 MINIMUM_OBSIDIAN_VERSION=${2:-not provided}
+BRANCH=${CUSTOM_BRANCH:-main}
 
 if [ -f "$(dirname "$0")/version_info.sh" ]; then
   echo "Gathering version information for release..."
@@ -12,21 +13,26 @@ if [ -f "$(dirname "$0")/version_info.sh" ]; then
 fi
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$current_branch" != "main" ]]; then
-  echo "Error: You are not on the 'main' branch. Current branch: '$current_branch'"
-  echo "Please switch to the 'main' branch to run this release."
+if [[ "$current_branch" != ${BRANCH} ]]; then
+  echo "Error: You are not on the '${BRANCH}' branch. Current branch: '$current_branch'"
+  echo "       Please switch to the '${BRANCH}' branch to run this release."
+  echo "Info: Force a different branch with ""export CUSTOM_BRANCH='yourbranch'"" before calling this script."
   echo "Exiting."
 
   exit 1
+elif [[ "$current_branch" != 'main' ]]; then
+  echo "Warning: You are not on the 'main' branch. Current branch: '$current_branch'"
+  echo "         However, branch '${BRANCH}' was allowed via CUSTOM_BRANCH environment variable."
+  echo "Continuing."
 fi
 
 if [ "$#" -ne 2 ]; then
-    echo "Must provide exactly two arguments."
-    echo "First one must be the new version number."
-    echo "Second one must be the minimum obsidian version for this release."
+    echo "Error: Must provide exactly two arguments."
+    echo "       First one must be the new version number."
+    echo "       Second one must be the minimum obsidian version for this release."
     echo ""
     echo "Example usage:"
-    echo "release.sh 0.3.0 0.11.13"
+    echo "       release.sh 0.3.0 0.11.13"
     echo "Exiting."
 
     exit 1
